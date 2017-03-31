@@ -9,7 +9,6 @@ use Cwd ();
 use File::chdir;
 use File::Spec ();
 use File::Path ();
-use Data::Dumper;
 use App::Rad;
 
 exit App::Rad->run();
