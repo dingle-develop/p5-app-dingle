@@ -1,0 +1,82 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use utf8;
+
+use Config::General ();
+use Cwd ();
+use File::chdir;
+use File::Spec ();
+use File::Path ();
+use Data::Dumper;
+use App::Rad;
+
+exit App::Rad->run();
+
+sub basedir :Help("Show the used basedir")
+{
+  my ($c) = @_;
+  my $basedir = $c->options->{basedir} || Cwd::cwd();
+  die("Basedir '$basedir' not found.\n") unless -d $basedir;
+  return $basedir;
+}
+
+sub sitelib :Help("Install or update site-lib modules")
+{
+  my ($c) = @_;
+  my $basedir = basedir($c);
+  my $configfile = _sitelib_config($c);
+  unless($configfile) {
+	  return "No config found.";
+  }
+  my %conf = Config::General::ParseConfig($configfile);
+  $conf{'directoryname'} ||= 'site-lib';
+  
+  my $path = File::Spec->catdir($basedir, $conf{'directoryname'});
+  unless( -d $path ) {
+      File::Path::mkpath($path) || 
+          die("Can not create site-lib directory.");
+  }
+  
+  { local $CWD = $path;
+    $c->debug("Now in $CWD");
+    defined $conf{'github'} && _sitelib_github($c,\%conf)
+  }
+  return '';	
+}
+
+sub _sitelib_config
+{
+  my ($c) = @_;
+  my $file = $c->options->{'config'};
+  unless(defined $file) {
+      $file = File::Spec->catfile(Cwd::cwd(),'config','site-lib.conf')
+  }
+  return $file if -f $file;
+}
+
+sub _sitelib_github
+   { my $c = shift
+   ; my %conf = %{shift()}
+   ; my %gh = %{$conf{'github'}}
+   ; for my $account (keys %gh)
+	  { for my $repo (keys %{$gh{$account}{'repo'}})
+	     { if(-d $repo)
+                { push @CWD, $repo
+		        ; `git pull`;
+                ; pop @CWD
+                }
+	       else
+                { my $url = "https://github.com/$account/$repo"
+                ; `git clone $url`
+                }
+	  }}   
+   }
+
+
+
+1;
+
+__END__
+  
