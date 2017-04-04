@@ -12,7 +12,8 @@ use File::Spec ();
 use File::Path ();
 use App::Rad;
 
-exit App::Rad->run();
+# load as module is possible so, mmmhs ... 
+exit App::Rad->run() unless caller();
 
 sub basedir :Help("Show the used basedir")
 {
@@ -27,7 +28,7 @@ sub sitelib :Help("Install or update site-lib modules")
   my ($c) = @_;
   my $basedir = basedir($c);
   my $configfile = _sitelib_config($c);
-  unless(-f $configfile) {
+  unless(-f $configfile or -l $configfile) {
 	  return "No config file '$configfile' found.";
   }
   my %conf = Config::General::ParseConfig($configfile);
@@ -75,7 +76,47 @@ sub _sitelib_github
 	  }}   
    }
 
+; sub perform :Help(run a script with site-libs)
+	{ my ($c) = @_
+	; my ($script) = @{$c->argv} 
+	; my (%mods,%libs)
+ 
+	; my $basedir ||= &basedir
+	; my $configfile = &_sitelib_config 
+	; unless(-f $configfile or -l $configfile) {
+	    return "No config file '$configfile' found."
+    }
+    ; my %conf = Config::General::ParseConfig($configfile)
+    ; $conf{'directoryname'} ||=
+      File::Basename::basename($configfile, '.conf')
 
+	; my @repositories = ('github','private')
+	; my $path = File::Spec->catdir($basedir, $conf{'directoryname'});
+	   
+    ; for my $source (@repositories)
+	    { for my $account (keys %{$conf{$source}})
+	        { while( my ($repo,$modlist) =
+	             each(%{$conf{$source}{$account}{'repo'}}))
+	            { for my $module (keys %$modlist)
+	                { $module =~ s/::/\//g
+	                ; $mods{ "$module.pm" } = $repo
+	                ; $libs{ "$module.pm" } = $path
+	   }}}}
+	
+	; unshift @INC , sub
+	    { my ($sub,$mod) = @_
+	    ; if(exists($mods{ $mod }))
+	        { my $filename = File::Spec->catfile(
+	              $libs{ $mod }, $mods{ $mod }, 'lib', $mod)
+	        ; open (my $fh, "<", $filename)
+	        ; $INC{$mod} = $filename
+	        ; return $fh
+	        }
+	    ; return
+	    }
+	; eval "use lib 'lib'"
+	; return require($script)
+	}
 
 1;
 
