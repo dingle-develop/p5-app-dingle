@@ -6,6 +6,7 @@ use utf8;
 
 use Config::General ();
 use Cwd ();
+use File::Basename ();
 use File::chdir;
 use File::Spec ();
 use File::Path ();
@@ -26,11 +27,12 @@ sub sitelib :Help("Install or update site-lib modules")
   my ($c) = @_;
   my $basedir = basedir($c);
   my $configfile = _sitelib_config($c);
-  unless($configfile) {
-	  return "No config found.";
+  unless(-f $configfile) {
+	  return "No config file '$configfile' found.";
   }
   my %conf = Config::General::ParseConfig($configfile);
-  $conf{'directoryname'} ||= 'site-lib';
+  $conf{'directoryname'} ||=
+      File::Basename::basename($configfile, '.conf');
   
   my $path = File::Spec->catdir($basedir, $conf{'directoryname'});
   unless( -d $path ) {
@@ -52,7 +54,7 @@ sub _sitelib_config
   unless(defined $file) {
       $file = File::Spec->catfile(Cwd::cwd(),'config','site-lib.conf')
   }
-  return $file if -f $file;
+  return $file;
 }
 
 sub _sitelib_github

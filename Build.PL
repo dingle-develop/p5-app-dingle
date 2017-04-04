@@ -14,12 +14,16 @@ my $builder = Module::Build->new(
      license => 'perl',
      dist_abstract => 'a commandline tool for a software generator',
      requires => {
-                  'perl' => '5.12.0',
+          'perl' => '5.12.0',
+	      'App::Rad' => '1.05',
 	 	  'Config::General' => '',
-	          'File::chdir' => '',
-	          'File::Path' => '',
-	          'File::Spec' => ''
-                 },
+	      'File::chdir' => '',
+	      'File::Path' => '',
+	      'File::Spec' => ''
+     },
+     build_requires => {
+		 'Test::Output' => '1.0'
+     }
 );
 
 $builder->create_build_script();

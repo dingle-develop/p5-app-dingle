@@ -19,7 +19,7 @@ SKIP: {
     my $sitelib = File::Spec->catdir( $dir,'site-lib' );
     my $contents = <<__EOT__;
     
-directoryname = $sitelib
+directoryname = site-lib
 
 <github giftnuss>
   <repo p5-ho-class>
@@ -35,8 +35,7 @@ __EOT__
     print $fh $contents;
     close $fh;
    
-    $ret = `$^X $filename sitelib --config=$config`;
-    
+    $ret = `$^X $filename sitelib --basedir="$dir" --config=$config`;
     my $check = File::Spec->catfile($sitelib,'p5-ho-class','lib','HO','class.pm');
     ok( -f $check, "sitelib installed");
 }
