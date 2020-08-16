@@ -29,7 +29,7 @@ sub sitelib :Help("Install or update site-lib modules")
   my $basedir = basedir($c);
   my $configfile = _sitelib_config($c);
   unless(-f $configfile or -l $configfile) {
-	  return "No config file '$configfile' found.";
+	  return "Config file '$configfile' not found.";
   }
   my %conf = Config::General::ParseConfig($configfile);
   $conf{'directoryname'} ||=
@@ -73,7 +73,7 @@ sub _sitelib_github
                 { my $url = "https://github.com/$account/$repo"
                 ; `git clone $url`
                 ; push @CWD, $repo
-                ; git config pull.rebase false
+                ; `git config pull.rebase false`
                 ; pop @CWD
                 }
 	  }}   

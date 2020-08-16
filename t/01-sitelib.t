@@ -13,7 +13,7 @@ SKIP: {
 
     my $filename = File::Spec->catfile( $FindBin::Bin,'..','dingle');
     my $ret = `$^X $filename sitelib`;
-    is( $ret, "No config found.\n" );
+    like( $ret, qr/Config file '.*' not found.\n/ );
 
     my $config = File::Spec->catfile( $dir,'site-lib-test.conf' );
     my $sitelib = File::Spec->catdir( $dir,'site-lib' );
@@ -21,8 +21,8 @@ SKIP: {
     
 directoryname = site-lib
 
-<github giftnuss>
-  <repo p5-ho-class>
+<github p5-ho-develop>
+  <repo class>
     HO::abstract
     HO::accessor
     HO::class
@@ -36,7 +36,7 @@ __EOT__
     close $fh;
    
     $ret = `$^X $filename sitelib --basedir="$dir" --config=$config`;
-    my $check = File::Spec->catfile($sitelib,'p5-ho-class','lib','HO','class.pm');
+    my $check = File::Spec->catfile($sitelib,'class','lib','HO','class.pm');
     ok( -f $check, "sitelib installed");
 }
 
