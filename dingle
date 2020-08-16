@@ -72,6 +72,9 @@ sub _sitelib_github
 	       else
                 { my $url = "https://github.com/$account/$repo"
                 ; `git clone $url`
+                ; push @CWD, $repo
+                ; git config pull.rebase false
+                ; pop @CWD
                 }
 	  }}   
    }
